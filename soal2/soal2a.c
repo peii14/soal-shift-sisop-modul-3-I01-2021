@@ -4,7 +4,7 @@
 #include <sys/ipc.h>
 #include <sys/msg.h>
 
-struct mesg_buffer {
+struct msg_buffer {
     long msg_type;
     int Mrow,Mcols;
     int multi[10][10];
@@ -53,14 +53,22 @@ int main(int argc, char *argv[])
     for (int c = 0; c < row1; c++) {
       for (int d = 0; d < cols2; d++) {
         for (int k = 0; k < row2; k++) {
-          sum = sum + m[c][k]*m2[k][d];
+          sum += m[c][k]*m2[k][d];
         }
         message.multi[c][d] = sum;
         sum = 0;
       }
     }
+    // print result
+    printf("Result: \n");
+    for (int c = 0; c < message.Mrow; c++) {
+      for (int d = 0; d < message.Mcols; d++)
+        printf("%d\t", message.multi[c][d]);
+      printf("\n");
+    }
+
     msgsnd(msgid, &message, sizeof(message), 0);
-    printf("SENT\n");
+    printf("MESSAGE SENT\n");
     
     return 0;
 }
