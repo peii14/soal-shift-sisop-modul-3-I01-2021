@@ -1,17 +1,27 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-char *err_msg = 
-"Invalid Usage.\n\n\
-Usage: ./a.out <no_of_row> <no_of_col> <elements_of array_in_row_order>\n\
-Example: ./a.out 2 3 1 2 3 3 4 5\n";
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+struct mesg_buffer {
+    long msg_type;
+    int Mrow,Mcols;
+    int multi[10][10];
+} message;
 
 int main(int argc, char *argv[])
 {
     int row1 =4, cols1=3,row2=3,cols2=6, sum=0; 
-    int m[10][10], m2[10][10]; 
-    int multi[10][10]; 
+    int m[10][10], m2[10][10];  
     int index =1, index2 = 13; 
+    
+    key_t key = ftok("progfile", 65);
+    int msgid;
+    msgid = msgget(key, 0666 | IPC_CREAT);
+    message.Mrow = row1;
+    message.Mcols = cols2;
+    message.msg_type = 1;
 
     printf("input matrix 1\n");
     for(int i=0; i<row1; i++) {
@@ -45,20 +55,12 @@ int main(int argc, char *argv[])
         for (int k = 0; k < row2; k++) {
           sum = sum + m[c][k]*m2[k][d];
         }
- 
-        multi[c][d] = sum;
+        message.multi[c][d] = sum;
         sum = 0;
       }
     }
- 
-    printf("Product:\n");
- 
-    for (int c = 0; c < row1; c++) {
-      for (int d = 0; d < cols2; d++)
-        printf("%d\t", multi[c][d]);
- 
-      printf("\n");
-    }
+    msgsnd(msgid, &message, sizeof(message), 0);
+    printf("SENT\n");
     
     return 0;
 }
