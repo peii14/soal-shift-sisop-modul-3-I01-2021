@@ -64,7 +64,7 @@ void* function(void *arg)
     {
         if(directory == NULL)
         {
-            printf("error\n");
+            printf("Sad, gagal :(\n");
         }
 
         //ngecek nama tipe file nya udh ada blom
@@ -82,7 +82,6 @@ void* function(void *arg)
             strcpy(temp,cwd);
             strcat(temp,"/");
             strcat(temp,lowcase);
-            printf("File type = %s\nBerhasil Dikategorikan\n",lowcase);
             mkdir(temp, 0777);
         }
     }
@@ -92,7 +91,6 @@ void* function(void *arg)
         strcpy(temp,cwd);
         strcat(temp,"/");
         strcat(temp,"Unknown");
-        printf("File type = Unknown\nBerhasil Dikategorikan\n");
         mkdir(temp, 0777);
     }
 	
@@ -120,10 +118,7 @@ void* function(void *arg)
 
 int main(int argc, char *argv[]) 
 {
-    if(getcwd(cwd, sizeof(cwd)) != NULL) 
-    {
-        printf("Current working dir: %s\n", cwd);
-    } 
+    getcwd(cwd, sizeof(cwd));
 
     int i=0;
     //loop sebanyak argumen file trus masuk ke thread yg dibuat buat mindahin file
@@ -133,7 +128,77 @@ int main(int argc, char *argv[])
         {
             pthread_create(&(tid[i]),NULL,function,argv[j]);
             pthread_join(tid[i],NULL);
+            printf("File %d : Berhasil Dikategorikan\n", i+1);
             i++;
         }
+    }
+
+    else if (strcmp(argv[1],"-d") == 0 && argc == 3) 
+    {
+        i = 0;
+        DIR *fd;
+        struct dirent *masuk;
+        char tempata[100];
+        fd = opendir(argv[2]);
+        //ngecek bisa dibuka apa engga direktorinya
+        if(fd == NULL)
+        {
+            printf("Yah, gagal disimpan :(\n");
+        }
+        //ngebaca apa aja yg ada di direktorinya
+        while( (masuk=readdir(fd)) )
+        {
+            if ( !strcmp(masuk->d_name, ".") || !strcmp(masuk->d_name, "..") )
+            continue;
+
+            //nyimpen path file yg dikategoriin di tempata
+            strcpy(tempata,argv[2]);
+            strcat(tempata,"/");
+            strcat(tempata,masuk->d_name);
+            //ngecek file bukan kalo iya masuk ke thread
+            if(masuk->d_type == 8)
+            {
+            pthread_create(&(tid[i]),NULL,function,tempata); //bikin thread
+            pthread_join(tid[i],NULL);
+            i++;
+            }
+        }
+        printf("Direktori Sukses Disimpan!\n");
+    }
+
+    else if (strcmp(argv[1],"*") == 0 && argc == 2) 
+    {
+        i = 0;
+        DIR *fd;
+        struct dirent *masuk;
+        char tempata[100];
+        fd = opendir(cwd);
+
+        if(fd == NULL)
+        {
+            printf("Yah, gagal disimpan :(\n");
+        }
+        char tempatsoal[100] = "/home/damdum/Soal3/soal3.c", tempatsoal3[100] = "/home/damdum/Soal3/soal3";
+        while((masuk=readdir(fd)))
+        {
+            if (!strcmp(masuk->d_name, ".") || !strcmp(masuk->d_name, "..") )
+            continue;
+            
+            strcpy(tempata,cwd);
+            strcat(tempata,"/");
+            strcat(tempata,masuk->d_name);
+            //printf("tempata = %s\n", tempata);
+            //printf("tempatsoal = %s\n", tempatsoal);
+            //printf("tempatsoal3 = %s\n", tempatsoal3);
+            if((strcmp(tempata,tempatsoal) == 0) || strcmp(tempata,tempatsoal3) == 0) 
+            continue;
+            
+            else if(masuk->d_type == 8){
+            pthread_create(&(tid[i]),NULL,function,tempata); //membuat thread
+            pthread_join(tid[i],NULL);
+            i++;
+            }
+        }
+        printf("Direktori suskses disimpan!\n");
     }
 }
